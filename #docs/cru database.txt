@@ -1,0 +1,247 @@
+set global event_scheduler="on";
+create database if not exists CRU character set utf8 collate utf8_unicode_ci;
+use CRU;
+SET time_zone = "-04:00";
+
+create table if not EXISTS miembros(
+  id integer unsigned auto_increment primary key,
+  nombre_de_usuario VARCHAR(255) not NULL UNIQUE,
+  clave varchar(150) NOT NULL,
+  foto VARCHAR(255),
+  correo VARCHAR(140) UNIQUE ,
+  fecha_de_registro date,
+  estado VARCHAR(50)
+);
+CREATE TABLE IF NOT EXISTS coordinaciones(
+  id INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(50)
+);
+CREATE TABLE IF NOT EXISTS funciones(
+  id INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(75),
+  coordinacion_id INTEGER UNSIGNED
+);
+CREATE TABLE IF NOT EXISTS funciones_miembros(
+  funcion_id INTEGER UNSIGNED not null,
+  miembro_id INTEGER UNSIGNED not null,
+  PRIMARY KEY (funcion_id,miembro_id)
+);
+CREATE TABLE if NOT EXISTS miembros_coordinaciones(
+  miembro_id INTEGER UNSIGNED not null,
+  coordinacion_id INTEGER UNSIGNED not null,
+  rol VARCHAR(50),
+  PRIMARY KEY (miembro_id,coordinacion_id)
+);
+CREATE TABLE IF NOT EXISTS donaciones(
+  id INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
+  monto FLOAT,
+  descripcion text,
+  motivo text,
+  institucion_id INTEGER UNSIGNED,
+  fecha_de_realizacion date,
+  referente INTEGER UNSIGNED
+);
+create table IF NOT EXISTS contactos(
+  id INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
+  nombre VARCHAR(150) not null,
+  ubicacion varchar(200),
+  telefono varchar(50),
+  rif VARCHAR(20)
+);
+CREATE TABLE IF NOT EXISTS balances(
+  id INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
+  fecha_inicio date not null,
+  fecha_de_cierre date,
+  balance_general float
+);
+CREATE TABLE IF NOT EXISTS mensualidades(
+  id INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  concepto VARCHAR(50) not null,
+  monto_mensual float not null,
+  deducion float,
+  impuesto float
+);
+CREATE TABLE IF NOT EXISTS abonos(
+  id INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
+  monto_abonado FLOAT NOT NULL,
+  miembro_id INTEGER UNSIGNED,
+  balance_id INTEGER UNSIGNED,
+  mensualidad_id INTEGER UNSIGNED
+);
+create table if not EXISTS proyectos(
+  id integer unsigned AUTO_INCREMENT PRIMARY KEY ,
+  nombre varchar(200),
+  descripcion text,
+  estado VARCHAR(50)
+);
+create table if not exists grupos(
+  id INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
+  nombre varchar(150)
+);
+create table if not EXISTS miembros_grupos(
+  miembro_id INTEGER UNSIGNED,
+  grupo_id INTEGER UNSIGNED,
+  rol varchar(50),
+  PRIMARY KEY (miembro_id,grupo_id)
+);
+create table if NOT EXISTS modelos(
+  id INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
+  tipo VARCHAR(50),
+  modelo VARCHAR(100),
+  descripcion TEXT,
+  abstracto VARCHAR(25),
+  documentacion varchar(255)
+);
+CREATE TABLE IF NOT EXISTS componentes(
+  id integer unsigned AUTO_INCREMENT PRIMARY KEY ,
+  modelo_id INTEGER UNSIGNED,
+  observacion VARCHAR(255),
+  dato VARCHAR(50)
+);
+create TABLE IF NOT EXISTS solicitudes(
+  id INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
+  motivo text,
+  fecha_solicitud date,
+  proyecto_id integer UNSIGNED not NULL ,
+  miembro_id INTEGER UNSIGNED,
+  componente_id integer UNSIGNED NOT NULL ,
+  estado varchar(50)
+);
+create table if not EXISTS eventos(
+  id integer UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
+  titulo varchar(200) not null,
+  fecha date,
+  lugar VARCHAR(255),
+  estado varchar(50)
+);
+create TABLE if not EXISTS miembros_eventos(
+  miembro_id integer UNSIGNED NOT NULL ,
+  evento_id INTEGER UNSIGNED not NULL ,
+  confirmacion VARCHAR(15)
+);
+create table if not EXISTS utilerias(
+  id integer UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
+  evento_id INTEGER UNSIGNED,
+  estado VARCHAR(50),
+  miembro_id INTEGER UNSIGNED
+);
+create table if not EXISTS cursos(
+  id integer UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
+  tema VARCHAR(50) not null,
+  fecha date,
+  lugar VARCHAR(255),
+  costo FLOAT,
+  duracion VARCHAR(50),
+  estado varchar(50)
+);
+create table if not EXISTS miembros_cursos (
+  curso_id INTEGER UNSIGNED,
+  miembro_id INTEGER UNSIGNED,
+  rol varchar(50),
+  PRIMARY KEY (curso_id,miembro_id)
+);
+create table if not EXISTS clases(
+  id integer UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
+  tema VARCHAR(50) not null,
+  horario VARCHAR(255),
+  costo FLOAT,
+  estado varchar(50)
+);
+create table if not EXISTS material (
+  id integer UNSIGNED AUTO_INCREMENT PRIMARY KEY ,
+  archivo varchar(255),
+  titulo VARCHAR(50),
+  descripcion VARCHAR(255)
+);
+CREATE TABLE IF NOT EXISTS miembros_clases(
+  miembro_id INTEGER UNSIGNED,
+  clase_id INTEGER UNSIGNED,
+  rol VARCHAR(50),
+  PRIMARY KEY (miembro_id,clase_id)
+);
+
+/*Relaciones*/
+alter TABLE funciones add INDEX (coordinacion_id);
+alter table funciones add FOREIGN KEY (coordinacion_id) REFERENCES coordinaciones (id)
+on DELETE CASCADE on UPDATE CASCADE;
+
+alter table funciones_miembros
+  add foreign key (funcion_id) references funciones (id)
+  on delete restrict on update cascade;
+alter table funciones_miembros
+  add foreign key (miembro_id) references miembros (id)
+  on delete restrict on update cascade;
+
+alter table miembros_coordinaciones
+  add foreign key (coordinacion_id) references coordinaciones (id)
+  on delete restrict on update cascade;
+alter table miembros_coordinaciones
+  add foreign key (miembro_id) references miembros (id)
+  on delete restrict on update cascade;
+
+alter TABLE donaciones add INDEX (institucion_id);
+alter table donaciones add FOREIGN KEY (institucion_id) REFERENCES contactos (id)
+on DELETE CASCADE on UPDATE CASCADE;
+
+alter TABLE funciones add INDEX (coordinacion_id);
+alter table funciones add FOREIGN KEY (coordinacion_id) REFERENCES coordinaciones (id)
+on DELETE CASCADE on UPDATE CASCADE;
+
+alter TABLE abonos add INDEX (miembro_id);
+alter table abonos add FOREIGN KEY (miembro_id) REFERENCES miembros (id)
+on DELETE CASCADE on UPDATE CASCADE;
+alter TABLE abonos add INDEX (balance_id);
+alter table abonos add FOREIGN KEY (balance_id) REFERENCES balances (id)
+on DELETE CASCADE on UPDATE CASCADE;
+alter TABLE abonos add INDEX (mensualidad_id);
+alter table abonos add FOREIGN KEY (mensualidad_id) REFERENCES mensualidades (id)
+on DELETE CASCADE on UPDATE CASCADE;
+
+alter table miembros_grupos
+  add foreign key (grupo_id) references grupos (id)
+  on delete restrict on update cascade;
+alter table miembros_grupos
+  add foreign key (miembro_id) references miembros (id)
+  on delete restrict on update cascade;
+
+alter TABLE componentes add INDEX (modelo_id);
+alter table componentes add FOREIGN KEY (modelo_id) REFERENCES modelos (id)
+on DELETE CASCADE on UPDATE CASCADE;
+
+alter table solicitudes add INDEX (proyecto_id);
+alter table solicitudes add FOREIGN KEY (proyecto_id) REFERENCES proyectos (id)
+on DELETE CASCADE ON UPDATE CASCADE;
+alter table solicitudes add INDEX (miembro_id);
+alter table solicitudes add FOREIGN KEY (miembro_id) REFERENCES miembros (id)
+on DELETE CASCADE ON UPDATE CASCADE;
+alter table solicitudes add INDEX (componente_id);
+alter table solicitudes add FOREIGN KEY (componente_id) REFERENCES componentes (id)
+on DELETE CASCADE ON UPDATE CASCADE;
+
+alter table miembros_eventos
+  add foreign key (evento_id) references eventos (id)
+  on delete restrict on update cascade;
+alter table miembros_eventos
+  add foreign key (miembro_id) references miembros (id)
+  on delete restrict on update cascade;
+
+alter TABLE utilerias add INDEX (miembro_id);
+alter table utilerias add FOREIGN KEY (miembro_id) REFERENCES miembros (id)
+on DELETE CASCADE on UPDATE CASCADE;
+alter TABLE utilerias add INDEX (evento_id);
+alter table utilerias add FOREIGN KEY (evento_id) REFERENCES eventos (id)
+on DELETE CASCADE on UPDATE CASCADE;
+
+alter table miembros_cursos
+  add foreign key (miembro_id) references miembros (id)
+  on delete restrict on update cascade;
+alter table miembros_cursos
+  add foreign key (curso_id) references cursos (id)
+  on delete restrict on update cascade;
+
+alter table miembros_clases
+  add foreign key (miembro_id) references miembros (id)
+  on delete restrict on update cascade;
+alter table miembros_clases
+  add foreign key (clase_id) references clases (id)
+  on delete restrict on update cascade;
